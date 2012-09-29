@@ -45,54 +45,62 @@
  			mysql_dbi_table = plugin_camm_snmptt
  			mysql_dbi_table_unknown = plugin_camm_snmptt_unk
  			mysql_dbi_table_statistics = plugin_camm_snmptt_stat
- 
- 			mysql_dbi_host = localhost 			# << CHANGE !
- 			mysql_dbi_port = 3306 				# << CHANGE !
- 			mysql_dbi_database = cacti			# << CHANGE !
- 			mysql_dbi_username = cactiuser		# << CHANGE !
- 			mysql_dbi_password = cactipassword	# << CHANGE !
- 
- 			mysql_ping_on_insert = 1
- 			mysql_ping_interval = 300
- 			date_time_format_sql = %Y-%m-%d %H:%M:%S
- 			stat_time_format_sql = %Y-%m-%d %H:%M:%S
- 			
- 	3. Configure SYSLOG Component (only if You need this component and enable it):
- 		1. Install syslog-ng ([HOWTO] Install Syslog-ng on Linux/Unix Cacti vers - http://forums.cacti.net/viewtopic.php?t=26040)
- 			Here may be 2 shems of work
- 				a)One table - all incoming messages stored in one table (default "plugin_camm_syslog")
- 				b)Two tables - all incoming messages stored in temp table (default "plugin_camm_syslog_incoming"). On each run poller process all rules and after that copy messages to main table 
- 			You can choose it in settings tab of plugin and import necessary sql file from /camm/sql folder and use this table name in syslog-ng.conf;
- 			
- 			Change the following lines to the /etc/syslog-ng/syslog-ng.conf file to the END of the file:
- 				
- 				source net {
- 					udp();
- 				};
- 				destination d_mysql {
- 				    pipe("/tmp/mysql.pipe"
- 				    template("INSERT INTO plugin_camm_syslog (host, sourceip, facility, priority, sys_date, message, status) VALUES ( '$HOST',  '$SOURCEIP', '$FACILITY', '$PRIORITY', '$YEAR-$MONTH-$DAY $HOUR:$MIN:$SEC', '$MSG', '0' );\n")
- 				    template-escape(yes)
- 				     );
- 				};
- 
- 				log { source(net); destination(d_mysql); };
- 				log { source(s_sys); destination(d_mysql); };
- 			
- 	
+
+			mysql_dbi_host = localhost 			# << CHANGE !
+			mysql_dbi_port = 3306 				# << CHANGE !
+			mysql_dbi_database = cacti			# << CHANGE !
+			mysql_dbi_username = cactiuser		# << CHANGE !
+			mysql_dbi_password = cactipassword	# << CHANGE !
+
+			mysql_ping_on_insert = 1
+			mysql_ping_interval = 300
+			date_time_format_sql = %Y-%m-%d %H:%M:%S
+			stat_time_format_sql = %Y-%m-%d %H:%M:%S
+
+	3. Configure SYSLOG Component (only if You need this component and enable it):
+		1. Install syslog-ng ([HOWTO] Install Syslog-ng on Linux/Unix Cacti vers - http://forums.cacti.net/viewtopic.php?t=26040)
+			Here may be 2 schemes of work
+				a)One table - all incoming messages stored in one table (default "plugin_camm_syslog")
+				b)Two tables - all incoming messages stored in temp table (default "plugin_camm_syslog_incoming"). On each run poller process all rules and after that copy messages to main table 
+			You can choose it in settings tab of plugin and import necessary sql file from /camm/sql folder and use this table name in syslog-ng.conf;
+
+			Change the following lines to the /etc/syslog-ng/syslog-ng.conf file to the END of the file:
+
+				source net {
+					udp();
+				};
+				destination d_mysql {
+				    pipe("/tmp/mysql.pipe"
+				    template("INSERT INTO plugin_camm_syslog (host, sourceip, facility, priority, sys_date, message, status) VALUES ( '$HOST',  '$SOURCEIP', '$FACILITY', '$PRIORITY', '$YEAR-$MONTH-$DAY $HOUR:$MIN:$SEC', '$MSG', '0' );\n")
+				    template-escape(yes)
+				     );
+				};
+
+				log { source(net); destination(d_mysql); };
+				log { source(s_sys); destination(d_mysql); };
+
+		2. For rsyslog support add template to /etc/rsyslog.d/mysql.conf
+
+			### Configuration file for rsyslog-mysql
+			### Changes are preserved
+			$ModLoad ommysql
+			$template cacti_camm_syslog,"INSERT INTO plugin_camm_syslog (host, sourceip, facility, priority, sys_date, message, status) values ('%hostname:::lower%', '%fromhost-ip%','%syslogfacility-text%', '%syslogpriority-text%', '%timereported:::date-mysql%', '%msg%', '0')", SQL
+			*.* >localhost,cacti,cactiuser,cactipassword;cacti_camm_syslog
+
+
  ----[ Possible Bugs?
- 
- 	If you find a problem, let me know!!!
- 
- 
+
+	If you find a problem, let me know!!!
+
+
  ----[ Future Changes
- 
- 	
- 
- 
+
+
+
+
  ----[ Changelog
- 	
- 
+
+
  	CAMM --- 1.5.0 ---2009-02-26
  		Change plugin name (from "snmptt" name).
  		For upgrade from snmptt you need:
