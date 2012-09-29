@@ -496,7 +496,7 @@
      
      // Make a single query to delete all of the presidents at the same time :
      if(sizeof($ids)<1){
-       echo camm_JEncode(array('failure' => true,'error' => 'Zerro count input data'));
+       echo camm_JEncode(array('failure' => true,'error' => 'Zero count input data'));
      } else {
  		//$cur_user = db_fetch_cell("select username from user_auth where id=" . $_SESSION["sess_user_id"]);
  		$str_ids = '';
@@ -715,7 +715,7 @@
      
      // Make a single query to delete all of the presidents at the same time :
      if(sizeof($n_settings)<1){
-       echo camm_JEncode(array('failure' => true,'error' => 'Zerro count input data'));
+       echo camm_JEncode(array('failure' => true,'error' => 'Zero count input data'));
      } else {
  		
  		if (isset($_SESSION["sess_config_array"])) {

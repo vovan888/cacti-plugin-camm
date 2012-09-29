@@ -978,7 +978,7 @@ if (read_config_option("camm_join_field") == "sourceip") {
  		   $id = $_POST['id']; // Get our array back and translate it :
  		   $id = camm_JDecode(stripslashes($id));
  		    if(sizeof($id)<1){
-				$rezult = "Zerro count Input data";
+				$rezult = "Zero count Input data";
  		    } else if (sizeof($id) == 1){
 			
 			$use_fqdn = (read_config_option("camm_use_fqdn", true) == '1');	

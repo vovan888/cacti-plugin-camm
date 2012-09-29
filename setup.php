@@ -270,7 +270,7 @@
  			),
  		"camm_join_field" => array(
  			"friendly_name" => "Join field name",
- 			"description" => "Choose join field on which record (trap or syslog) will be joined with cacti device's",
+ 			"description" => "Choose join field on which record (trap or syslog) will be joined with cacti devices",
  			"order" => "2.3.",			
  			"method" => "drop_array",
  			"default" => "IP-address (if you device DON'T use DNS name)",
@@ -278,7 +278,7 @@
  			),
  		"camm_use_fqdn" => array(
  			"friendly_name" => "Hostname include domain",
- 			"description" => "Do you use host with FQDN in cacti device's ?",
+ 			"description" => "Do you use host with FQDN in cacti devices ?",
  			"order" => "2.4.",			
  			"method" => "drop_array",
  			"default" => "Don't use FQDN in cacti hosts hostname (like cacti) - default",
@@ -391,7 +391,7 @@
  			),			
  		"camm_snmptt_min_row_all" => array(
  			"friendly_name" => "Min rows in tables",
- 			"description" => "Specify the minimum number of rows.<br>No matter their retention period specified number of rows can not be removed.<br>Ie If you specify 1 million, then deleting the old records at least 1 million will remain,<br>even if they are older than the specified term. <br> Zerro for unlimited.",
+ 			"description" => "Specify the minimum number of rows.<br>No matter their retention period specified number of rows can not be removed.<br>Ie If you specify 1 million, then deleting the old records at least 1 million will remain,<br>even if they are older than the specified term. <br> Zero for unlimited.",
  			"order" => "4.2.",			
  			"method" => "textbox",
  			"value" => "|arg1:camm_snmptt_min_row_all|",
@@ -400,7 +400,7 @@
  			),
  		"camm_snmptt_max_row_per_device" => array(
  			"friendly_name" => "Max rows per device in day",
- 			"description" => "Enter max count rows in tables per device per day. Zerro for unlimited.",
+ 			"description" => "Enter max count rows in tables per device per day. Zero for unlimited.",
  			"order" => "4.3.",			
  			"method" => "textbox",
  			"value" => "|arg1:camm_snmptt_max_row_per_device|",
@@ -464,7 +464,7 @@
  			),			
  		"camm_sys_min_row_all" => array(
  			"friendly_name" => "Min rows in table",
- 			"description" => "Specify the minimum number of rows.<br>No matter their retention period specified number of rows can not be removed.<br>Ie If you specify 1 million, then deleting the old records at least 1 million will remain,<br>even if they are older than the specified term. <br> Zerro for unlimited.",
+ 			"description" => "Specify the minimum number of rows.<br>No matter their retention period specified number of rows can not be removed.<br>Ie If you specify 1 million, then deleting the old records at least 1 million will remain,<br>even if they are older than the specified term. <br> Zero for unlimited.",
  			"order" => "5.4.",			
  			"method" => "textbox",
  			"value" => "|arg1:camm_sys_min_row_all|",
@@ -473,7 +473,7 @@
  			),
  		"camm_sys_max_row_per_device" => array(
  			"friendly_name" => "Max rows per device in day",
- 			"description" => "Enter max count rows in table per device per day. Zerro for unlimited. . Maximum = 5000000",
+ 			"description" => "Enter max count rows in table per device per day. Zero for unlimited. . Maximum = 5000000",
  			"order" => "5.5.",			
  			"method" => "numberfield",
 			"max_value" => 5000000,

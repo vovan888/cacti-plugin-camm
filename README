@@ -14,7 +14,7 @@
  	Plugin, which allows you to view/delete/alert/mark/manage SNMPTT (snmp traps and infos) OR/AND SYSLOG messages stored in a database. 
      
  ----[ Installation
- 	IMPORTANT: This plugin ONLY show data from mysql. It does not accept traps/syslog messages itself.
+ 	IMPORTANT: This plugin ONLY shows data from mysql. It does not accept traps/syslog messages itself.
  	Requirements:
  		- Cacti 0.8.7b/c/d
  		- Plugin Architecture v2.х for Cacti v0.8.7
