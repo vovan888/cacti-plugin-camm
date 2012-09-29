@@ -1,0 +1,222 @@
+/*******************************************************************************
+ 
+     Author ......... Susanin (aka gthe on cacti.net forums)
+     Contact ........ gthe72@yandex.ru
+     Home Site ...... http://forums.cacti.net/viewtopic.php?p=156769#156769
+     Program ........ CaMM (CActi Message Management) Plugin for Cacti
+     Purpose ........ View and manage syslog/snmptt messages
+ 
+ 
+ *******************************************************************************/
+ 
+ 
+ ----[ Purpose
+ 	Plugin, which allows you to view/delete/alert/mark/manage SNMPTT (snmp traps and infos) OR/AND SYSLOG messages stored in a database. 
+     
+ ----[ Installation
+ 	IMPORTANT: This plugin ONLY show data from mysql. It does not accept traps/syslog messages itself.
+ 	Requirements:
+ 		- Cacti 0.8.7b/c/d
+ 		- Plugin Architecture v2.х for Cacti v0.8.7
+ 			For syslog component:
+ 				- Syslog-ng (dump data to mysql);
+ 			For snmptt component:
+ 				- NET-SNMP trapd
+ 				- SNMPTT from http://www.snmptt.org/
+ 	
+ 	1. Install just like any other plugin, just throw it in the plugin directory,
+ 	in a folder called camm.
+ 	For PIA 2.0 and higher go to :
+ 		1.1 Console->Plugin Management->Uninstalled tab->camm -> install
+ 		1.2 Console->Plugin Management->Installed tab->camm -> enable
+ 		1.3 Open camm tab to start autoupgrade process;
+ 		1.4 In camm tab open "setting" tab and enable components to use (snmptt, syslog);
+ 	
+ 	2. Configure SNMPTT Component (only if You need this component and enable it):
+ 		Info about installing and configure snmptt programm - http://www.snmptt.org/
+ 		After that change same setting in snmptt.ini:
+ 			mibs_environment = ALL
+ 			date_time_format = %Y-%m-%d %H:%M:%S
+ 			unknown_trap_log_enable = 1
+ 			statistics_interval = 300 # or 3000
+ 			db_translate_enterprise = 1
+ 			
+ 			mysql_dbi_enable = 1
+ 			mysql_dbi_table = plugin_camm_snmptt
+ 			mysql_dbi_table_unknown = plugin_camm_snmptt_unk
+ 			mysql_dbi_table_statistics = plugin_camm_snmptt_stat
+ 
+ 			mysql_dbi_host = localhost 			# << CHANGE !
+ 			mysql_dbi_port = 3306 				# << CHANGE !
+ 			mysql_dbi_database = cacti			# << CHANGE !
+ 			mysql_dbi_username = cactiuser		# << CHANGE !
+ 			mysql_dbi_password = cactipassword	# << CHANGE !
+ 
+ 			mysql_ping_on_insert = 1
+ 			mysql_ping_interval = 300
+ 			date_time_format_sql = %Y-%m-%d %H:%M:%S
+ 			stat_time_format_sql = %Y-%m-%d %H:%M:%S
+ 			
+ 	3. Configure SYSLOG Component (only if You need this component and enable it):
+ 		1. Install syslog-ng ([HOWTO] Install Syslog-ng on Linux/Unix Cacti vers - http://forums.cacti.net/viewtopic.php?t=26040)
+ 			Here may be 2 shems of work
+ 				a)One table - all incoming messages stored in one table (default "plugin_camm_syslog")
+ 				b)Two tables - all incoming messages stored in temp table (default "plugin_camm_syslog_incoming"). On each run poller process all rules and after that copy messages to main table 
+ 			You can choose it in settings tab of plugin and import necessary sql file from /camm/sql folder and use this table name in syslog-ng.conf;
+ 			
+ 			Change the following lines to the /etc/syslog-ng/syslog-ng.conf file to the END of the file:
+ 				
+ 				source net {
+ 					udp();
+ 				};
+ 				destination d_mysql {
+ 				    pipe("/tmp/mysql.pipe"
+ 				    template("INSERT INTO plugin_camm_syslog (host, sourceip, facility, priority, sys_date, message, status) VALUES ( '$HOST',  '$SOURCEIP', '$FACILITY', '$PRIORITY', '$YEAR-$MONTH-$DAY $HOUR:$MIN:$SEC', '$MSG', '0' );\n")
+ 				    template-escape(yes)
+ 				     );
+ 				};
+ 
+ 				log { source(net); destination(d_mysql); };
+ 				log { source(s_sys); destination(d_mysql); };
+ 			
+ 	
+ ----[ Possible Bugs?
+ 
+ 	If you find a problem, let me know!!!
+ 
+ 
+ ----[ Future Changes
+ 
+ 	
+ 
+ 
+ ----[ Changelog
+ 	
+ 
+ 	CAMM --- 1.5.0 ---2009-02-26
+ 		Change plugin name (from "snmptt" name).
+ 		For upgrade from snmptt you need:
+ 			1. Backup you snmptt data (mysql tables [plugin_snmptt],[plugin_snmptt_statistics],[plugin_snmptt_tree],[plugin_snmptt_unknown],[plugin_snmptt_alert],[plugin_snmptt_syslog])
+ 			2. Backup you main system data (mysql tables [settings],[plugin_db_changes],[plugin_hooks],[plugin_config],[plugin_realms])
+ 			3. Copy all files from camm archive to <cacti_path>/plugins/camm
+ 			4. Goto cacti "Plugin Management" and install camm plugin. Install process will rename all old snmptt tables, settings and uninstall snmptt plugin. All realm settings for all users will be saved and reapllyed.
+ 			5. Enable camm plugin and open it.
+ 			6.1. If you use snmptt data - It is necessary to change a file [snmptt.ini] and restart snmptt service
+ 				mysql_dbi_table = plugin_camm_snmptt
+ 				mysql_dbi_table_unknown = plugin_camm_snmptt_unk
+ 				mysql_dbi_table_statistics = plugin_camm_snmptt_stat
+ 			6.2. If you use syslog-ng - It is necessary to change a file [syslog-ng.conf] and restart syslog-ng service
+ 				destination d_mysql {
+ 			    pipe("/tmp/mysql.pipe"
+ 			    template("INSERT INTO plugin_camm_syslog (host, sourceip, facility, priority, sys_date, message, status) VALUES ( '$HOST',  '$SOURCEIP', '$FACILITY', '$PRIORITY', '$YEAR-$MONTH-$DAY $HOUR:$MIN:$SEC', '$MSG', '0' );\n")
+ 			    template-escape(yes)
+ 			     );
+ 			If all OK - you can safe delete snmptt plugin.
+ 		
+ 		Changes:
+ 		- Use "component-like" system. Now you can use camm plugin for syslog and snmptt OR syslog only OR snmptt only data. Config it in settings tab after installing plugin.
+ 		- Enable/Disable components without page reload;
+ 		- Don't use Iframe any more. Use real full ExtJS app (some speedup);
+ 		- Added syslog "pre table" schema. Use it when you use separate table for incoming messages and only poller runs - rows will be copied in main syslog table. [Syslog incoming table] settings.
+ 			Don't forget for change syslog-ng.conf. You can find sql for incoming table in camm/sql/plugin_camm_syslog_incoming_memory.sql. Import it in syslog DB;
+ 		
+ 		Minor updates:
+ 		- Some optimization code for callback;
+ 		- Show detailed error info for plugin's admin only;
+ 		- More detailed statistics;
+ 		- Stats graph's ID setting;
+ 
+ 		Known issue
+ 		- Don't work old snmptt stat graph's (the best will be delete it and create new later);
+ 		
+ 	CAMM --- 1.5.1 ---2009-03-18
+		- Fix error when install withous syslog db/tables;
+		- Fix error when delete trap;
+
+ 	CAMM --- 1.5.2 ---2009-03-27
+		- Fix state save for grids;
+ 	
+	CAMM --- 1.5.3 ---2009-04-06
+		- Fix showing "Console" and "Graph" tab based on user right;
+		- Change sorting menu tree to [device_type_name asc, description, eventname];
+		- Add option to send one mail per trap/syslog rather than grouping records together and sending one mail with all records;
+
+  CAMM --- 1.5.4 ---2009-05-22
+    - Fix error in creation filter for rule when exist two or more case sensitive search field values (local0 and Local0 now are different)
+    - Fix old big error in AutoPurge process;
+    - update graphs and ss_camm_poller.php
+	
+	
+  CAMM --- 1.6.0 ---2009-07-07
+	- Fix error on install process. Now all tables by default created in <default cacati DB>;
+	- Menu tree replaced with TreeGrid with percent field - allows quickly and visually to define the most active equipment;
+	- In menu TreeGrid added combobox <period> with all,week,day,hour;
+	- New format of email field address ("user@domain.com;" or "user1@domain.com; user2@domain.com; ...")
+	- Many other fixes;
+	
+  CAMM --- 1.6.1 ---2009-07-17
+	- Change format of email field address ("user@domain.com" or "user1@domain.com; user2@domain.com; ..." or "user1@domain.com,user2@domain.com,...");
+	- Fix error on Global search;
+	- Fix tree update process sql;
+	- Fix error on menu type search;
+	- Fix visual anomaly for small resolutions;
+	- Fix bug for startup tab;
+	- Some speedup for menu tree refresh process;
+	
+  CAMM --- 1.6.2 ---2009-07-17
+	- Added new config in startup settings - [Startup tree menu width];	
+	- Added possibility of creating of the menu on the basis of markers in rule. For use - check new config option in - Settings tab - [Create tree menu for Markers ?]
+	
+  CAMM --- 1.6.3 ---2009-08-07
+	- Switch to use ExtJS 2.3.0. before you updated on this with any previous version - you can completely remove directories: camm/images/default, camm/images/slate, camm/images/vista;
+	- Added new config settings - [Rule order];	
+	- Added new config settings - [Action order in each rule];	
+	- Added new grid [Incorrect devices] in stats tab. Used to quickly determine the possible incorrect device. For example, if the device DEV1 and DEV2 belong to the same type of T1, and the device DEV1 sends a message, and the device DEV2 does not - then perhaps it is (DEV2) configured incorrectly ;	
+	- Fix IE visual bug in menu;
+	
+  CAMM --- 1.6.4 ---2009-09-03
+	- Added the possibility of cloning rules;
+	- Added "host type" field in rule's sql;
+	- Added to the rapid removal of records through the context menu for syslog and snmp traps Menu Tree;
+	- minor fixs;
+
+  CAMM --- 1.6.5 ---2009-11-25
+	- Switch to use ExtJS 3.0.3.
+	- Added [E-mail format] in rule - standart/html;
+	- Added [Include data] in rule - Include cacti device description in email;
+	- Use new, "pretty" the format of the text from mcutting (without the use of tags in the field of Alert - these tags can be used directly in the field of rules); 
+	- Added color selection for Traps (TrapSeverity Normal = Green and TrapSeverity Major = Red) (mpdsville1)
+	
+	- Fix bug with export data to excel, if the data contains a string '<br>';
+	- Fix : use mysql_affected_rows () instead db_fetch_cell ( "SELECT ROW_COUNT ()") to work correctly with mysql 4 versions (Wannes);
+
+	CAMM --- 1.6.62 ---2010-07-02
+	- Switch to use ExtJS 3.2.1.
+	- Add parameter in camm settings [Hostname include domain]. Set it to [1] if in cacti You use FQDN in hostnames, but syslog sent only 'host' in messages;
+	- The total change in the principles of search/mark messages by rules. Prior to that, if the message fell into 2 or more markering rules, it contained only a marker of the last rule. Now it is corrected by a new mechanism for marking. This should also positively affect the speed of processing. It also removes the restriction on the value of the marker. (previously it was <100). In order to process all records in the new scheme - follow these instructions after updating plugin "Truncate table plugin_camm_tree2;" and "update <you_syslog_db>.plugin_camm_syslog set `status`='0';". Warning - this may cause a large load during the next cycle of the poller.
+	- Update Slate theme;
+	- Added new field [add] in the message's table, which can be used for any purpose - for example, for additional information and processing user-defined functions;
+	- Added new field in [rule] table - [actual_triggered] - stores information about the current number of messages that fall under this rule;
+	- A small change in the appearance of the "Edit rule" window;
+	Changes in the left menu:
+		- hidden folder icon - just plus / minus - it saves additional space for description;
+		- sorting menu made by db, which positively affects the speed of display / update the menu, especially whith large number of hosts (thousands);
+		- added automatically calculate, readonly parameter [camm_use_group_by_host] responsible for the additional grouping of records. To avoid unnecessary stress is not desirable to have a base Cacti hosts with the same value hostname. Check it by this sql "SELECT  hostname, count(*)  FROM host group by hostname having count(*)>1"
+	- Fix error in IE;
+	- Fix PageSize of store if update by TreeMenu;
+	- Fixed bug causing a show of all message when you use the menu for a certain period;
+
+	CAMM --- 1.6.63 ---2010-07-05
+	- Reduced the number of sql queries when opening the plugin from 9 to 4;
+	- Fix error with sql edit field;
+	
+	CAMM --- 1.6.7 ---2010-08-26
+	- Add Chart on stats tab. You can view the schedule of income during the selected messages from the selected interval and build the graph of the distribution of messages by hosts. Or you can go to view the specific messages.
+	- Change to use rule_id as marker_id and rule_name as marker_name. Will no longer be confusion with the marker_id anr rule_id;
+	
+	- Fix old-time bug with autocreate of trees (thanks torstentfk);
+	
+	
+	
+	
+!!!! After updating the files, be sure to press CTRL + F5 to refresh your browser cache! !!!!
